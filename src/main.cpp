@@ -7,11 +7,45 @@ using namespace cucumber;
 
 namespace po = boost::program_options;
 
+namespace {
+
+    Plugin & findPlugin(const string & name) {
+        for (auto i = plugins().begin(); i != plugins().end(); ++i) {
+            auto & plugin = (*i);
+            if (plugin->name() == name) {
+                return *plugin;
+            }
+        }
+        cerr << "[WARN] Can't extract plugin name from " << name << endl;
+        throw "Plugin not found";
+    }
+
+    unique_ptr<InputSource> inputMatching(const string & expression) {
+        for (auto p = plugins().begin(); p != plugins().end(); ++p) {
+            auto & plugin = (*p);
+            try {
+                unique_ptr<InputSource> is = plugin->inputFor(expression);
+                cerr << "[DEBUG] Input spec matching plugin " << plugin->name() << endl;
+                return is;
+            } catch (...) {}
+        }
+        cerr << "[ERROR] No plugin matching input spec " << expression << endl;
+        throw "No plugin found";
+    }
+}
 
 int main(int ac, const char *av[])
 {
     try {
         vector<string> glue, in, out, inputSpec;
+
+        cerr << "[DEBUG] Registered plugins:";
+        for (auto i = plugins().begin(); i != plugins().end(); ++i) {
+            auto & plugin = (*i);
+            cerr << " " << plugin->name();
+        }
+        cerr << endl;
+
 
         po::options_description visible("");
         visible.add_options()
@@ -46,9 +80,33 @@ int main(int ac, const char *av[])
             return 1;
         }
 
-        cout << "Command line arguments:" << endl;
+        vector<unique_ptr<InputSource>> inputSources;
+        for (auto i = in.begin(); i != in.end(); ++i) {
+            auto index = i->find(':');
+
+            string pluginName, inputExpr;
+            if (index != string::npos) {
+                pluginName = i->substr(0, index);
+                inputExpr = i->substr(index + 1, i->length());
+            } else {
+                pluginName = *i;
+                inputExpr = "";
+            }
+
+            inputSources.push_back(findPlugin(pluginName).inputFor(inputExpr));
+        }
+
         for (auto i = inputSpec.begin(); i != inputSpec.end(); ++i) {
-            cout << " - " << *i << endl;
+            auto & inputExpr = (*i);
+            inputSources.push_back(inputMatching(inputExpr));
+        }
+
+        for (auto is = inputSources.begin(); is != inputSources.end(); ++is) {
+            auto & inputSource = *is;
+
+            for (unique_ptr<const Scenario> scenario = inputSource->read(); scenario; scenario = inputSource->read()) {
+                cout << "Read " << scenario->name << endl;
+            }
         }
 
         /*

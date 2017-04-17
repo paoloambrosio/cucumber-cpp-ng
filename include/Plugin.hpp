@@ -41,7 +41,7 @@ public:
 
 OutputSink & operator<<(OutputSink & os, const ScenarioResult & scenarioResult);
 
-// Message-driven architectures in C++ are easier with callbacks
+
 class Plugin {
 public:
 
@@ -55,16 +55,16 @@ public:
      * @param expression
      * @return
      */
-    virtual unique_ptr<InputSource> inputFor(const string & expression) = 0;
+    virtual unique_ptr<InputSource> inputFor(const string & expression) const = 0;
 
     /**
      * Returns an output source from an expression.
-     * Throws some exception if it cannot be prased or created (e.g. cannot open file).
+     * Throws some exception if it cannot be parsed or created (e.g. cannot open file).
      *
      * @param expression
      * @return
      */
-    virtual unique_ptr<OutputSink> outputFor(const string & expression) = 0;
+    virtual unique_ptr<OutputSink> outputFor(const string & expression) const = 0;
 
     virtual void processOptions(boost::program_options::options_description & desc) = 0;
 };
@@ -80,8 +80,8 @@ template<class P> bool registerPlugin() {
 
 class NullPlugin : public Plugin {
 public:
-    unique_ptr<InputSource> inputFor(const string & expression);
-    unique_ptr<OutputSink> outputFor(const string & expression);
+    unique_ptr<InputSource> inputFor(const string & expression) const;
+    unique_ptr<OutputSink> outputFor(const string & expression) const;
     void processOptions(boost::program_options::options_description & desc);
 };
 
