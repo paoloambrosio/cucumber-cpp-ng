@@ -33,8 +33,6 @@ public:
 };
 
 static const regex protocolMatcher("^((tcp:([^:]+):)?(\\d+)|unix:([^:]+)|)$");
-// with this anything not number is unix, but that means it would take priority over feature files
-//static const regex protocolMatcher("^((tcp:([^:]+):)?(\\d+)|(unix:)?([^:]+)|)$");
 
 class WireProtocolPlugin : public NullPlugin {
 public:

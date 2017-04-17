@@ -38,6 +38,9 @@ int main(int ac, const char *av[])
 {
     try {
         vector<string> glue, in, out, inputSpec;
+        vector<unique_ptr<InputSource>> inputSources;
+        vector<unique_ptr<OutputSink>> outputSinks;
+
 
         cerr << "[DEBUG] Registered plugins:";
         for (auto i = plugins().begin(); i != plugins().end(); ++i) {
@@ -52,7 +55,7 @@ int main(int ac, const char *av[])
             ("help,h", "produce help message")
 //            ("glue,g", po::value<vector<string>>(&glue)->composing(), "Read step definitions from those libraries")
             ("in,i", po::value<vector<string>>(&in)->composing(), "input format")
-//            ("out,o", po::value<vector<string>>(&out)->composing(), "Output format")
+            ("out,o", po::value<vector<string>>(&out)->composing(), "Output format")
         ;
 
         for (auto i = plugins().begin(); i != plugins().end(); ++i) {
@@ -80,7 +83,6 @@ int main(int ac, const char *av[])
             return 1;
         }
 
-        vector<unique_ptr<InputSource>> inputSources;
         for (auto i = in.begin(); i != in.end(); ++i) {
             auto index = i->find(':');
 
@@ -95,17 +97,38 @@ int main(int ac, const char *av[])
 
             inputSources.push_back(findPlugin(pluginName).inputFor(inputExpr));
         }
-
         for (auto i = inputSpec.begin(); i != inputSpec.end(); ++i) {
             auto & inputExpr = (*i);
             inputSources.push_back(inputMatching(inputExpr));
         }
 
+        for (auto i = out.begin(); i != out.end(); ++i) {
+            auto index = i->find(':');
+
+            string pluginName, outputExpr;
+            if (index != string::npos) {
+                pluginName = i->substr(0, index);
+                outputExpr = i->substr(index + 1, i->length());
+            } else {
+                pluginName = *i;
+                outputExpr = "";
+            }
+
+            outputSinks.push_back(findPlugin(pluginName).outputFor(outputExpr));
+        }
+        // TODO if no output is defined use the default?
+
         for (auto is = inputSources.begin(); is != inputSources.end(); ++is) {
             auto & inputSource = *is;
 
             for (unique_ptr<const Scenario> scenario = inputSource->read(); scenario; scenario = inputSource->read()) {
-                cout << "Read " << scenario->name << endl;
+                cout << "<< " << scenario->name << endl;
+                ScenarioResult result("successful " + scenario->name); // TODO
+
+                for (auto os = outputSinks.begin(); os != outputSinks.end(); ++os) {
+                    auto & outputSink = *os;
+                    outputSink->write(result);
+                }
             }
         }
 
