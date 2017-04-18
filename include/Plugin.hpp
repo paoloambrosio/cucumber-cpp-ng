@@ -1,6 +1,8 @@
 #ifndef CUCUMBER_CPP_PLUGIN_H
 #define CUCUMBER_CPP_PLUGIN_H
 
+#include <engine.hpp>
+
 #include <memory>
 #include <vector>
 #include <boost/program_options.hpp>
@@ -8,24 +10,6 @@
 namespace cucumber {
 
 using namespace std;
-
-class Scenario {
-public:
-    Scenario(const string & name) :
-        name(name) {
-    }
-
-    const string name;
-};
-
-class ScenarioResult {
-public:
-    ScenarioResult(const string & outcome) :
-        outcome(outcome) {
-    }
-
-    const string outcome;
-};
 
 class InputSource {
 public:

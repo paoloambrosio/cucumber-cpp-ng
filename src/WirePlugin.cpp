@@ -5,29 +5,72 @@
 
 using namespace cucumber;
 
+enum MessageType {
+    match_step,
+    begin_scenario,
+    invoke_step,
+    end_scenario
+};
 
-class TcpWireProtocolSource : public InputSource {
+class WireProtocolSource : public InputSource {
+private:
+    vector<MessageType> fakeMessages {
+            match_step,
+            match_step,
+            begin_scenario,
+            invoke_step,
+            end_scenario,
+            match_step,
+            match_step,
+            begin_scenario,
+            invoke_step,
+            invoke_step,
+            end_scenario
+        };
+
+protected:
+    void processFakeMessages() {
+        std::for_each(fakeMessages.begin(), fakeMessages.end(), [](MessageType & m) {
+            switch (m) {
+                case match_step:
+                    matchStep();
+                    break;
+                case begin_scenario:
+                    beginScenario();
+                    break;
+                case invoke_step:
+                    invokeStep();
+                    break;
+                case end_scenario:
+                    endScenario();
+                    break;
+            }
+        });
+    }
+};
+
+class TcpWireProtocolSource : public WireProtocolSource {
 public:
     TcpWireProtocolSource(string host, int port) {
-        // TODO
         cerr << "[DEBUG] TCP Wire Input " << host << ":" << port << endl;
     }
 
     unique_ptr<const Scenario> read() {
         cerr << "[DEBUG] Reading from TCP Wire" << endl;
+        processFakeMessages();
         return unique_ptr<const Scenario>();
     };
 };
 
-class UnixWireProtocolSource : public InputSource {
+class UnixWireProtocolSource : public WireProtocolSource {
 public:
     UnixWireProtocolSource(string sock) {
-        // TODO
         cerr << "[DEBUG] UNIX Wire Input " << sock << endl;
     }
 
     unique_ptr<const Scenario> read() {
         cerr << "[DEBUG] Reading from UNIX Wire" << endl;
+        processFakeMessages();
         return unique_ptr<const Scenario>();
     };
 };

@@ -118,41 +118,22 @@ int main(int ac, const char *av[])
         }
         // TODO if no output is defined use the default?
 
+        /*
+         * TODO ============> Glue
+         */
+
         for (auto is = inputSources.begin(); is != inputSources.end(); ++is) {
             auto & inputSource = *is;
 
-            for (unique_ptr<const Scenario> scenario = inputSource->read(); scenario; scenario = inputSource->read()) {
-                cout << "<< " << scenario->name << endl;
-                ScenarioResult result("successful " + scenario->name); // TODO
+            while (unique_ptr<const Scenario> scenario = inputSource->read()) {
+                unique_ptr<const ScenarioResult> result = process(*scenario);
 
                 for (auto os = outputSinks.begin(); os != outputSinks.end(); ++os) {
                     auto & outputSink = *os;
-                    outputSink->write(result);
+                    outputSink->write(*result);
                 }
             }
         }
-
-        /*
-         * Extra parameters registered by plugins.
-         *  - Can be on separate sections of not, depending how core the plugin is.
-         *
-         * - Input expressions are registered without plugin? (e.g. file.feature -> :file.feature)
-         * - Pass to named plugin inputs and outputs for that one
-         *   - Exit on any error
-         * - Pass to all plugins if none is specified for an input
-         *   - Stop at the first that works
-         *   - Exit on error creating input source
-         *   - Exit if no plugin is able to parse it (e.g. feature file and no gherkin plugin loaded)
-         *
-         * Order of plugins:
-         *  - Wire (for integer ports)
-         *  - Gherkin (anything else interpreted as file)
-         *
-         * ISSUE: The wire protocol first matches the step(s?) and then executes it! How can we do that?
-         *        We could use notifications to output to the wire protocol, but can't really use an input
-         *        source. Perhaps we just need to give up on that design and pass the cucumber engine to
-         *        input plugins for them to drive?
-         */
     }
     catch(std::exception& e) {
         cerr << "Error: " << e.what() << endl;
