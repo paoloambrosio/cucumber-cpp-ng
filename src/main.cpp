@@ -9,8 +9,8 @@ namespace po = boost::program_options;
 
 namespace {
 
-    Plugin & findPlugin(const string & name) {
-        for (auto i = plugins().begin(); i != plugins().end(); ++i) {
+    template<class T> T & findPlugin(vector<unique_ptr<T>> & plugins, const string & name) {
+        for (auto i = plugins.begin(); i != plugins.end(); ++i) {
             auto & plugin = (*i);
             if (plugin->name() == name) {
                 return *plugin;
@@ -20,8 +20,16 @@ namespace {
         throw "Plugin not found";
     }
 
+    InputPlugin & findInputPlugin(const string & name) {
+        return findPlugin(inputPlugins(), name);
+    }
+
+    OutputPlugin & findOutputPlugin(const string & name) {
+        return findPlugin(outputPlugins(), name);
+    }
+
     unique_ptr<InputSource> inputMatching(const string & expression) {
-        for (auto p = plugins().begin(); p != plugins().end(); ++p) {
+        for (auto p = inputPlugins().begin(); p != inputPlugins().end(); ++p) {
             auto & plugin = (*p);
             try {
                 unique_ptr<InputSource> is = plugin->inputFor(expression);
@@ -30,7 +38,7 @@ namespace {
             } catch (...) {}
         }
         cerr << "[ERROR] No plugin matching input spec " << expression << endl;
-        throw "No plugin found";
+        throw std::runtime_error("No plugin found");
     }
 }
 
@@ -41,15 +49,6 @@ int main(int ac, const char *av[])
         vector<unique_ptr<InputSource>> inputSources;
         vector<unique_ptr<OutputSink>> outputSinks;
 
-
-        cerr << "[DEBUG] Registered plugins:";
-        for (auto i = plugins().begin(); i != plugins().end(); ++i) {
-            auto & plugin = (*i);
-            cerr << " " << plugin->name();
-        }
-        cerr << endl;
-
-
         po::options_description visible("");
         visible.add_options()
             ("help,h", "produce help message")
@@ -57,11 +56,6 @@ int main(int ac, const char *av[])
             ("in,i", po::value<vector<string>>(&in)->composing(), "input format")
             ("out,o", po::value<vector<string>>(&out)->composing(), "Output format")
         ;
-
-        for (auto i = plugins().begin(); i != plugins().end(); ++i) {
-            auto & plugin = (*i);
-            plugin->processOptions(visible);
-        }
 
         po::options_description hidden("Hidden options");
         hidden.add_options()
@@ -95,7 +89,7 @@ int main(int ac, const char *av[])
                 inputExpr = "";
             }
 
-            inputSources.push_back(findPlugin(pluginName).inputFor(inputExpr));
+            inputSources.push_back(findInputPlugin(pluginName).inputFor(inputExpr));
         }
         for (auto i = inputSpec.begin(); i != inputSpec.end(); ++i) {
             auto & inputExpr = (*i);
@@ -114,7 +108,7 @@ int main(int ac, const char *av[])
                 outputExpr = "";
             }
 
-            outputSinks.push_back(findPlugin(pluginName).outputFor(outputExpr));
+            outputSinks.push_back(findOutputPlugin(pluginName).outputFor(outputExpr));
         }
         // TODO if no output is defined use the default?
 

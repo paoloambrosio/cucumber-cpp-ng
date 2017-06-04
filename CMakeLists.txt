@@ -28,5 +28,6 @@ set(CUKE_DEPENDENCIES ${CUKE_DEPENDENCIES} ${Boost_THREAD_LIBRARY} ${Boost_SYSTE
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 #add_subdirectory(src)
 
-add_executable(cucumber-cpp src/main.cpp src/engine.cpp src/Plugin.cpp src/SomePlugin.cpp src/WirePlugin.cpp)
+add_executable(cucumber-cpp src/main.cpp src/engine.cpp src/Plugin.cpp src/WirePlugin.cpp
+        src/SomePlugin.cpp)
 target_link_libraries(cucumber-cpp ${CUKE_DEPENDENCIES})

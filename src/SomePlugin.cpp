@@ -1,4 +1,4 @@
-#include "Plugin.hpp"
+#include "PluginRegistration.hpp"
 
 #include <iostream>
 
@@ -25,12 +25,16 @@ public:
     }
 };
 
-class SomePlugin : public NullPlugin {
+/**
+ * This plugin is an example of both input and output plugin.
+ *
+ */
+class SomePlugin : public InputPlugin, public OutputPlugin {
 private:
     bool some = false;
 public:
 
-    const char *name() {
+    const char *name() const {
         return "some";
     }
 
@@ -38,7 +42,7 @@ public:
         if (expression.empty() || expression == "some") {
             return unique_ptr<InputSource>(new SomeInputSource);
         } else {
-            throw "nothing for me!";
+            throw std::runtime_error("Nothing for me!");
         }
     };
 
@@ -47,13 +51,12 @@ public:
         return output;
     };
 
-    void processOptions(boost::program_options::options_description & desc) {
-        desc.add_options()
-            ("some,s", boost::program_options::bool_switch(&some), "do something?")
-        ;
-    }
-
-    static const bool created;
+    static const bool inputRegistered;
+    static const bool outputRegistered;
 };
 
-const bool SomePlugin::created = registerPlugin<SomePlugin>();
+/*
+ * Autoregister plugin
+ */
+const bool SomePlugin::inputRegistered = registerInputPlugin<SomePlugin>();
+const bool SomePlugin::outputRegistered = registerOutputPlugin<SomePlugin>();

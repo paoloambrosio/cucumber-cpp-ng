@@ -1,34 +1,27 @@
-#include "Plugin.hpp"
+#include "PluginRegistration.hpp"
+
+#include "WirePlugin.hpp"
 
 using namespace cucumber;
 
+/*
+ * These plugins are loaded by default. We could just use autoregistration
+ * and enable them in a configuration file, along with the ordering.
+ */
+vector<unique_ptr<InputPlugin>> defaultInputPlugins() {
+    vector<unique_ptr<InputPlugin>> plugins;
+    plugins.push_back(unique_ptr<InputPlugin>(new WireProtocolPlugin));
+    return plugins;
+}
 
-// TODO eventually we should return consts to the oustide world
-vector<unique_ptr<Plugin>> & cucumber::plugins() {
-    static vector<unique_ptr<Plugin>> plugins;
+vector<unique_ptr<InputPlugin>> & cucumber::inputPlugins() {
+    static vector<unique_ptr<InputPlugin>> plugins(defaultInputPlugins());
     return plugins;
 }
 
 
-InputSource & operator>>(InputSource & is, unique_ptr<const Scenario> scenario) {
-    scenario = is.read();
-    return is;
-}
 
-OutputSink & operator<<(OutputSink & os, const ScenarioResult & scenarioResult) {
-    os.write(scenarioResult);
-    return os;
-}
-
-
-
-unique_ptr<InputSource> NullPlugin::inputFor(const string & expression) const {
-    throw "some exception";
-}
-
-unique_ptr<OutputSink> NullPlugin::outputFor(const string & expression) const {
-    throw "some exception";
-}
-
-void NullPlugin::processOptions(boost::program_options::options_description & desc) {
+vector<unique_ptr<OutputPlugin>> & cucumber::outputPlugins() {
+    static vector<unique_ptr<OutputPlugin>> plugins;
+    return plugins;
 }

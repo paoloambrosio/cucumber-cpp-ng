@@ -1,4 +1,4 @@
-#include "Plugin.hpp"
+#include "WirePlugin.hpp"
 
 #include <iostream>
 #include <regex>
@@ -77,32 +77,26 @@ public:
 
 static const regex protocolMatcher("^((tcp:([^:]+):)?(\\d+)|unix:([^:]+)|)$");
 
-class WireProtocolPlugin : public NullPlugin {
-public:
+const char *WireProtocolPlugin::name() const {
+    return "wire";
+}
 
-    const char *name() {
-        return "wire";
-    }
-
-    unique_ptr<InputSource> inputFor(const string & expression) const {
-        smatch matchResult;
-        if (regex_search(expression, matchResult, protocolMatcher)) {
-            string parsedHost = matchResult[3];
-            string parsedPort = matchResult[4];
-            string parsedSock = matchResult[6];
-            if (parsedSock.empty()) {
-                string host = parsedHost.empty() ? "localhost" : parsedHost;
-                int port = parsedPort.empty() ? 3902 : stoi(parsedPort);
-                return unique_ptr<InputSource>(new TcpWireProtocolSource(host, port));
-            } else {
-                return unique_ptr<InputSource>(new UnixWireProtocolSource(parsedSock));
-            }
+unique_ptr<InputSource> WireProtocolPlugin::inputFor(const string & expression) const {
+    smatch matchResult;
+    if (regex_search(expression, matchResult, protocolMatcher)) {
+        string parsedHost = matchResult[3];
+        string parsedPort = matchResult[4];
+        string parsedSock = matchResult[5];
+        if (parsedSock.empty()) {
+            string host = parsedHost.empty() ? "localhost" : parsedHost;
+            int port = parsedPort.empty() ? 3902 : stoi(parsedPort);
+            return unique_ptr<InputSource>(new TcpWireProtocolSource(host, port));
         } else {
-            throw "Couldn't parse wire input expression";
+            return unique_ptr<InputSource>(new UnixWireProtocolSource(parsedSock));
         }
-    };
-
-    static const bool created;
+    } else {
+        throw std::runtime_error("Couldn't parse wire input expression");
+    }
 };
 
-const bool WireProtocolPlugin::created = registerPlugin<WireProtocolPlugin>();
+//const bool WireProtocolPlugin::inputRegistered = registerInputPlugin<WireProtocolPlugin>();
