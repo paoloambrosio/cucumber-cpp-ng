@@ -1,59 +1,47 @@
-#include <iostream>
-#include "Plugin.hpp"
+#include "plugins/PluginManager.hpp"
+
 #include <boost/program_options.hpp>
+#include <boost/dll.hpp>
+
+#include <iostream>
 
 using namespace std;
 using namespace cucumber;
+using namespace cucumber::plugins;
 
 namespace po = boost::program_options;
+namespace dll = boost::dll;
 
-namespace {
 
-    template<class T> T & findPlugin(vector<unique_ptr<T>> & plugins, const string & name) {
-        for (auto i = plugins.begin(); i != plugins.end(); ++i) {
-            auto & plugin = (*i);
-            if (plugin->name() == name) {
-                return *plugin;
-            }
+struct IOSpec {
+    IOSpec(const string & spec) {
+        auto index = spec.find(':');
+        if (index != string::npos) {
+            plugin = spec.substr(0, index);
+            expression = spec.substr(index + 1, spec.length());
+        } else {
+            plugin = spec;
+            expression = "";
         }
-        cerr << "[WARN] Can't extract plugin name from " << name << endl;
-        throw "Plugin not found";
     }
 
-    InputPlugin & findInputPlugin(const string & name) {
-        return findPlugin(inputPlugins(), name);
-    }
+    string plugin;
+    string expression;
+};
 
-    OutputPlugin & findOutputPlugin(const string & name) {
-        return findPlugin(outputPlugins(), name);
-    }
-
-    unique_ptr<InputSource> inputMatching(const string & expression) {
-        for (auto p = inputPlugins().begin(); p != inputPlugins().end(); ++p) {
-            auto & plugin = (*p);
-            try {
-                unique_ptr<InputSource> is = plugin->inputFor(expression);
-                cerr << "[DEBUG] Input spec matching plugin " << plugin->name() << endl;
-                return is;
-            } catch (...) {}
-        }
-        cerr << "[ERROR] No plugin matching input spec " << expression << endl;
-        throw std::runtime_error("No plugin found");
-    }
-}
 
 int main(int ac, const char *av[])
 {
     try {
         vector<string> glue, in, out, inputSpec;
-        vector<unique_ptr<InputSource>> inputSources;
-        vector<unique_ptr<OutputSink>> outputSinks;
+        vector<boost::filesystem::path> pluginLocations;
 
         po::options_description visible("");
         visible.add_options()
-            ("help,h", "produce help message")
-//            ("glue,g", po::value<vector<string>>(&glue)->composing(), "Read step definitions from those libraries")
-            ("in,i", po::value<vector<string>>(&in)->composing(), "input format")
+            ("help,h", "Help message")
+            ("plugin,p", po::value<vector<boost::filesystem::path>>(&pluginLocations)->composing(), "Plugins to load")
+            ("glue,g", po::value<vector<string>>(&glue)->composing(), "Glue code to load")
+            ("in,i", po::value<vector<string>>(&in)->composing(), "Input format")
             ("out,o", po::value<vector<string>>(&out)->composing(), "Output format")
         ;
 
@@ -77,53 +65,57 @@ int main(int ac, const char *av[])
             return 1;
         }
 
-        for (auto i = in.begin(); i != in.end(); ++i) {
-            auto index = i->find(':');
-
-            string pluginName, inputExpr;
-            if (index != string::npos) {
-                pluginName = i->substr(0, index);
-                inputExpr = i->substr(index + 1, i->length());
-            } else {
-                pluginName = *i;
-                inputExpr = "";
-            }
-
-            inputSources.push_back(findInputPlugin(pluginName).inputFor(inputExpr));
-        }
-        for (auto i = inputSpec.begin(); i != inputSpec.end(); ++i) {
-            auto & inputExpr = (*i);
-            inputSources.push_back(inputMatching(inputExpr));
-        }
-
-        for (auto i = out.begin(); i != out.end(); ++i) {
-            auto index = i->find(':');
-
-            string pluginName, outputExpr;
-            if (index != string::npos) {
-                pluginName = i->substr(0, index);
-                outputExpr = i->substr(index + 1, i->length());
-            } else {
-                pluginName = *i;
-                outputExpr = "";
-            }
-
-            outputSinks.push_back(findOutputPlugin(pluginName).outputFor(outputExpr));
-        }
-        // TODO if no output is defined use the default?
 
         /*
-         * TODO ============> Glue
+         * Load input plugins
          */
 
-        for (auto is = inputSources.begin(); is != inputSources.end(); ++is) {
-            auto & inputSource = *is;
+        loadPlugins(dll::program_location());
+        for (auto & location : pluginLocations) {
+            clog << "Loading plugins from " << location << endl;
+            loadPlugins(location);
+        }
 
+        /*
+         * Create input sources
+         */
+
+        vector<unique_ptr<InputSource>> inputSources;
+
+        // from explicit parameter
+        for (auto & i : in) {
+            IOSpec spec(i);
+            inputSources.push_back(findInputPlugin(spec.plugin).inputFor(spec.expression));
+        }
+
+        // from implicit positional parameter
+        for (auto & inputExpr : inputSpec) {
+            inputSources.push_back(firstInputMatching(inputExpr));
+        }
+
+        /*
+         * Create output sinks
+         */
+
+        vector<unique_ptr<OutputSink>> outputSinks;
+        for (auto & o : out) {
+            IOSpec spec(o);
+            outputSinks.push_back(findOutputPlugin(spec.plugin).outputFor(spec.expression));
+        }
+
+        // TODO if no output is defined use the default?
+
+        // TODO ============> Glue
+
+        /*
+         * Main loop
+         */
+
+        for (auto & inputSource : inputSources) {
             while (unique_ptr<const Scenario> scenario = inputSource->read()) {
                 unique_ptr<const ScenarioResult> result = process(*scenario);
 
-                for (auto os = outputSinks.begin(); os != outputSinks.end(); ++os) {
-                    auto & outputSink = *os;
+                for (auto & outputSink : outputSinks) {
                     outputSink->write(*result);
                 }
             }

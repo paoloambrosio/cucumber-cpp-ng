@@ -1,8 +1,12 @@
-#include "PluginRegistration.hpp"
+#include <plugins/plugins.hpp>
+
+#include <boost/dll/alias.hpp>
 
 #include <iostream>
 
-using namespace cucumber;
+
+namespace cucumber {
+namespace plugins {
 
 
 class SomeInputSource : public InputSource {
@@ -20,7 +24,7 @@ public:
 
 class SomeOutputSink : public OutputSink {
 public:
-    void write(const ScenarioResult & scenarioResult) {
+    void write(const ScenarioResult &scenarioResult) {
         std::cout << ">> " << scenarioResult.outcome << std::endl;
     }
 };
@@ -30,15 +34,13 @@ public:
  *
  */
 class SomePlugin : public InputPlugin, public OutputPlugin {
-private:
-    bool some = false;
 public:
 
     const char *name() const {
         return "some";
     }
 
-    unique_ptr<InputSource> inputFor(const string & expression) const {
+    unique_ptr<InputSource> inputFor(const string &expression) const {
         if (expression.empty() || expression == "some") {
             return unique_ptr<InputSource>(new SomeInputSource);
         } else {
@@ -46,17 +48,21 @@ public:
         }
     };
 
-    unique_ptr<OutputSink> outputFor(const string & expression) const {
+    unique_ptr<OutputSink> outputFor(const string &expression) const {
         unique_ptr<OutputSink> output(new SomeOutputSink);
         return output;
     };
 
-    static const bool inputRegistered;
-    static const bool outputRegistered;
 };
 
-/*
- * Autoregister plugin
- */
-const bool SomePlugin::inputRegistered = registerInputPlugin<SomePlugin>();
-const bool SomePlugin::outputRegistered = registerOutputPlugin<SomePlugin>();
+SomePlugin *somePlugin() noexcept {
+    static SomePlugin plugin;
+    return &plugin;
+}
+
+BOOST_DLL_ALIAS_SECTIONED(somePlugin, thisNeedsToBeUnique2, CukePlIn)
+BOOST_DLL_ALIAS_SECTIONED(somePlugin, thisNeedsToBeUnique3, CukePlOu)
+
+}
+}
+

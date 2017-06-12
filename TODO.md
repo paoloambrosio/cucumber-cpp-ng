@@ -1,0 +1,5 @@
+ - [x] I/O plugins at link time
+ - [x] Dynamically loaded I/O plugins (-p flag)
+ - [ ] Glue code with C interface
+ - [ ] Support for two testing frameworks?
+ - [ ] Other kind of plugins? Config and filters?
