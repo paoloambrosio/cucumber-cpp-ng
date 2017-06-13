@@ -17,7 +17,8 @@ set(Boost_USE_STATIC_LIBS OFF)
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost "1.63" COMPONENTS thread system regex date_time program_options filesystem REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})
-set(CUKE_DEPENDENCIES ${Boost_LIBRARIES})
+
+set(CUKE_DEPENDENCIES ${Boost_LIBRARIES} ${CMAKE_DL_LIBS})
 
 #find_package(Threads REQUIRED)
 #set(CUKE_DEPENDENCIES ${CUKE_DEPENDENCIES} Threads::Threads)
