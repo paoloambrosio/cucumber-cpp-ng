@@ -20,6 +20,8 @@ public:
      * @return the next read scenario, or null pointer if end reached
      */
     virtual unique_ptr<const Scenario> read() = 0;
+
+    virtual ~InputSource() {}
 };
 
 
@@ -31,6 +33,8 @@ public:
      * @param scenarioResult
      */
     virtual void write(const ScenarioResult &scenarioResult) = 0;
+
+    virtual ~OutputSink() {}
 };
 
 
@@ -38,7 +42,7 @@ class Plugin {
 public:
     virtual const char *name() const = 0;
 
-    virtual ~Plugin() {};
+    virtual ~Plugin() {}
 };
 
 

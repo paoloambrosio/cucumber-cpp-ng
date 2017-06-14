@@ -112,9 +112,8 @@ int main(int ac, const char *av[])
          */
 
         for (auto & inputSource : inputSources) {
-            while (unique_ptr<const Scenario> scenario = inputSource->read()) {
-                unique_ptr<const ScenarioResult> result = process(*scenario);
-
+            while (auto scenario = inputSource->read()) {
+                auto result = process(*scenario);
                 for (auto & outputSink : outputSinks) {
                     outputSink->write(*result);
                 }

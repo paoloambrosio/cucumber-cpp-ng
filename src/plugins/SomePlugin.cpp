@@ -60,8 +60,17 @@ SomePlugin *somePlugin() noexcept {
     return &plugin;
 }
 
-BOOST_DLL_ALIAS_SECTIONED(somePlugin, thisNeedsToBeUnique2, CukePlIn)
-BOOST_DLL_ALIAS_SECTIONED(somePlugin, thisNeedsToBeUnique3, CukePlOu)
+InputPlugin *someInputPlugin() noexcept {
+    return somePlugin();
+}
+
+OutputPlugin *someOutputPlugin() noexcept {
+    return somePlugin();
+}
+
+
+BOOST_DLL_ALIAS_SECTIONED(someInputPlugin, someInput, CukePlIn)
+BOOST_DLL_ALIAS_SECTIONED(someOutputPlugin, someOutput, CukePlOu)
 
 }
 }
