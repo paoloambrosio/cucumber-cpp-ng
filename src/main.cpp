@@ -80,27 +80,36 @@ int main(int ac, const char *av[])
          * Create input sources
          */
 
-        vector<unique_ptr<InputSource>> inputSources;
+        vector<shared_ptr<InputSource>> inputSources;
 
         // from explicit parameter
         for (auto & i : in) {
             IOSpec spec(i);
-            inputSources.push_back(findInputPlugin(spec.plugin).inputFor(spec.expression));
+            shared_ptr<InputSource> is(
+                    findInputPlugin(spec.plugin).inputFor(spec.expression).release()
+            );
+            inputSources.push_back(is);
         }
 
         // from implicit positional parameter
         for (auto & inputExpr : inputSpec) {
-            inputSources.push_back(firstInputMatching(inputExpr));
+            shared_ptr<InputSource> is(
+                    firstInputMatching(inputExpr).release()
+            );
+            inputSources.push_back(is);
         }
 
         /*
          * Create output sinks
          */
 
-        vector<unique_ptr<OutputSink>> outputSinks;
+        vector<shared_ptr<OutputSink>> outputSinks;
         for (auto & o : out) {
             IOSpec spec(o);
-            outputSinks.push_back(findOutputPlugin(spec.plugin).outputFor(spec.expression));
+            shared_ptr<OutputSink> is(
+                    findOutputPlugin(spec.plugin).outputFor(spec.expression).release()
+            );
+            outputSinks.push_back(is);
         }
 
         // TODO if no output is defined use the default?

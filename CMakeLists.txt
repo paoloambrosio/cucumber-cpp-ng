@@ -9,6 +9,12 @@ project(Cucumber-CPP)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
+#if(CMAKE_COMPILER_IS_GNUCXX)
+#    set(CMAKE_CXX_FLAGS_DEBUG "-Og")
+#elseif(MSVC)
+#    set(CMAKE_CXX_FLAGS_DEBUG "/Od")
+#endif()
+
 #
 # Dependencies
 #
