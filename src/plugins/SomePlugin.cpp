@@ -55,22 +55,12 @@ public:
 
 };
 
-SomePlugin *somePlugin() noexcept {
-    static SomePlugin plugin;
-    return &plugin;
+namespace {
+
+static RegisterInputPlugin<SomePlugin> input;
+static RegisterOutputPlugin<SomePlugin> output;
+
 }
-
-InputPlugin *someInputPlugin() noexcept {
-    return somePlugin();
-}
-
-OutputPlugin *someOutputPlugin() noexcept {
-    return somePlugin();
-}
-
-
-BOOST_DLL_ALIAS_SECTIONED(someInputPlugin, someInput, CukePlIn)
-BOOST_DLL_ALIAS_SECTIONED(someOutputPlugin, someOutput, CukePlOu)
 
 }
 }

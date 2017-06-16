@@ -1,4 +1,5 @@
-#include "plugins/PluginManager.hpp"
+#include "extensions.hpp"
+#include "plugins/plugins.hpp"
 
 #include <boost/program_options.hpp>
 #include <boost/dll.hpp>
@@ -70,10 +71,10 @@ int main(int ac, const char *av[])
          * Load input plugins
          */
 
-        loadPlugins(dll::program_location());
+        loadExtension(dll::program_location());
         for (auto & location : pluginLocations) {
             clog << "Loading plugins from " << location << endl;
-            loadPlugins(location);
+            loadExtension(location);
         }
 
         /*
@@ -85,12 +86,12 @@ int main(int ac, const char *av[])
         // from explicit parameter
         for (auto & i : in) {
             IOSpec spec(i);
-            inputSources.push_back(findInputPlugin(spec.plugin).inputFor(spec.expression));
+            inputSources.push_back(PluginRegistry::instance()->findInputPlugin(spec.plugin).inputFor(spec.expression));
         }
 
         // from implicit positional parameter
         for (auto & inputExpr : inputSpec) {
-            inputSources.push_back(firstInputMatching(inputExpr));
+            inputSources.push_back(PluginRegistry::instance()->firstInputMatching(inputExpr));
         }
 
         /*
@@ -100,7 +101,7 @@ int main(int ac, const char *av[])
         vector<unique_ptr<OutputSink>> outputSinks;
         for (auto & o : out) {
             IOSpec spec(o);
-            outputSinks.push_back(findOutputPlugin(spec.plugin).outputFor(spec.expression));
+            outputSinks.push_back(PluginRegistry::instance()->findOutputPlugin(spec.plugin).outputFor(spec.expression));
         }
 
         // TODO if no output is defined use the default?

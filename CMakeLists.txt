@@ -31,7 +31,10 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 #add_subdirectory(src)
 
 add_executable(cucumber-cpp
-        src/main.cpp src/engine.cpp src/plugins/PluginManager.cpp
+        src/main.cpp
+        src/engine.cpp
+        src/extensions.cpp
+        src/plugins/plugins.cpp
         src/plugins/WirePlugin.cpp
     )
 target_link_libraries(cucumber-cpp ${CUKE_DEPENDENCIES})

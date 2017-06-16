@@ -141,7 +141,9 @@ WireProtocolPlugin *wireProtocolPlugin() noexcept {
     return &plugin;
 }
 
-BOOST_DLL_ALIAS_SECTIONED(wireProtocolPlugin, wireInput, CukePlIn)
+namespace {
+    static RegisterInputPlugin<WireProtocolPlugin> input;
+}
 
 }
 }

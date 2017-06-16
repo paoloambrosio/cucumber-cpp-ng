@@ -73,11 +73,57 @@ public:
 };
 
 
+class BOOST_SYMBOL_EXPORT PluginRegistry {
+private:
+    vector<InputPlugin *> inputPlugins;
+    vector<OutputPlugin *> outputPlugins;
+
+public:
+    static PluginRegistry *instance();
+
+    void addInput(InputPlugin *plugin);
+//    void removeInput(InputPlugin *plugin);
+
+    InputPlugin & findInputPlugin(const string & name);
+    unique_ptr<InputSource> firstInputMatching(const string & expression);
+
+    void addOutput(OutputPlugin *plugin);
+//    void removeOutput(OutputPlugin *plugin);
+
+    OutputPlugin & findOutputPlugin(const string & name);
+};
+
+
+template<class T> class RegisterInputPlugin {
+private:
+    T t;
+
+public:
+    RegisterInputPlugin() {
+        PluginRegistry::instance()->addInput(&t);
+    }
+//
+//    ~RegisterInputPlugin() {
+//        PluginRegistry::instance()->removeInput(&t);
+//    }
+};
+
+template<class T> class RegisterOutputPlugin {
+private:
+    T t;
+
+public:
+    RegisterOutputPlugin() {
+        PluginRegistry::instance()->addOutput(&t);
+    }
+
+//    ~RegisterOutputPlugin() {
+//        PluginRegistry::instance()->removeOutput(&t);
+//    }
+};
+
+
 }
 }
-
-
-// TODO registration macros
-
 
 #endif //CUCUMBER_CPP_PLUGIN_H
