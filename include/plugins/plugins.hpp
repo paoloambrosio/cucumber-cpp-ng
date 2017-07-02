@@ -4,6 +4,7 @@
 #include <engine.hpp>
 
 #include <boost/filesystem.hpp>
+#include <boost/dll.hpp>
 
 #include <memory>
 #include <vector>

@@ -1,5 +1,9 @@
  - [x] I/O plugins at link time
  - [x] Dynamically loaded I/O plugins (-p flag)
- - [ ] Glue code with C interface
+ - [x] Glue code with C interface
+   - [x] C++ step registration
+   - [x] C step registration
+   - [ ] Step execution
  - [ ] Support for two testing frameworks?
+ - [ ] Support for two expression parsers?
  - [ ] Other kind of plugins? Config and filters?

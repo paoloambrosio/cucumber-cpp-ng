@@ -34,14 +34,13 @@ struct IOSpec {
 int main(int ac, const char *av[])
 {
     try {
-        vector<string> glue, in, out, inputSpec;
-        vector<boost::filesystem::path> pluginLocations;
+        vector<string> in, out, inputSpec;
+        vector<boost::filesystem::path> libraryLocations;
 
         po::options_description visible("");
         visible.add_options()
             ("help,h", "Help message")
-            ("plugin,p", po::value<vector<boost::filesystem::path>>(&pluginLocations)->composing(), "Plugins to load")
-            ("glue,g", po::value<vector<string>>(&glue)->composing(), "Glue code to load")
+            ("load,l", po::value<vector<boost::filesystem::path>>(&libraryLocations)->composing(), "Libraries to load")
             ("in,i", po::value<vector<string>>(&in)->composing(), "Input format")
             ("out,o", po::value<vector<string>>(&out)->composing(), "Output format")
         ;
@@ -68,12 +67,12 @@ int main(int ac, const char *av[])
 
 
         /*
-         * Load input plugins
+         * Load extensions
          */
 
         loadExtension(dll::program_location());
-        for (auto & location : pluginLocations) {
-            clog << "Loading plugins from " << location << endl;
+        for (auto & location : libraryLocations) {
+            clog << "Loading library from " << location << endl;
             loadExtension(location);
         }
 
@@ -105,8 +104,6 @@ int main(int ac, const char *av[])
         }
 
         // TODO if no output is defined use the default?
-
-        // TODO ============> Glue
 
         /*
          * Main loop

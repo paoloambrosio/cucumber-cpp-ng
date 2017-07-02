@@ -36,8 +36,12 @@ add_executable(cucumber-cpp
         src/extensions.cpp
         src/plugins/plugins.cpp
         src/plugins/WirePlugin.cpp
-    )
+        src/glue/registration.cpp)
 target_link_libraries(cucumber-cpp ${CUKE_DEPENDENCIES})
 
 add_library(some-cucumber-plugin SHARED src/plugins/SomePlugin.cpp)
 target_link_libraries(some-cucumber-plugin ${Boost_LIBRARIES})
+
+add_library(glue-example1 SHARED glue-examples/example1.cpp)
+
+add_library(glue-example2 SHARED glue-examples/example2.c)

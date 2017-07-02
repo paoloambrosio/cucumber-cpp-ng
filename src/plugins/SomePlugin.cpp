@@ -1,7 +1,5 @@
 #include <plugins/plugins.hpp>
 
-#include <boost/dll/alias.hpp>
-
 #include <iostream>
 
 
