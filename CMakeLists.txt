@@ -36,7 +36,9 @@ add_executable(cucumber-cpp
         src/extensions.cpp
         src/plugins/plugins.cpp
         src/plugins/WirePlugin.cpp
-        src/glue/registration.cpp)
+        src/glue/registration.cpp
+        src/glue/manager.cpp
+    )
 target_link_libraries(cucumber-cpp ${CUKE_DEPENDENCIES})
 
 add_library(some-cucumber-plugin SHARED src/plugins/SomePlugin.cpp)

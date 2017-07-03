@@ -17,22 +17,28 @@ extern "C" {
  * https://stackoverflow.com/questions/22763945/dll-main-on-windows-vs-attribute-constructor-entry-points-on-linux
  */
 
+struct ResultReporter {
+//    void (*passed)(); // default if we don't call any other!
+    void (*failed)(char *position, char *description);
+    void (*skipped)(char *example);
+};
 
 struct StepInfo {
     const char *position;       // e.g. "/.../filename.cpp:12"
     const char *expressionType; // e.g. "regex"
     const char *expression;     // e.g. "I eat (d+) cukes"
+    void (*body)(char *[], struct ResultReporter *);
 };
 
 /**
  * Register library-defined step
  */
-BOOST_SYMBOL_EXPORT void registerGlue(const struct StepInfo *step);
+BOOST_SYMBOL_EXPORT void registerGlue(struct StepInfo *step);
 
 /**
  * Unregister library-defined step
  */
-BOOST_SYMBOL_EXPORT void unregisterGlue(const struct StepInfo *step);
+BOOST_SYMBOL_EXPORT void unregisterGlue(struct StepInfo *step);
 
 #ifdef __cplusplus
 }

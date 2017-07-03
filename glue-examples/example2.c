@@ -1,28 +1,22 @@
 #include "glue/registration.h"
-
-struct StepDef {
-    struct StepInfo *info;
-    void (*body)();
-};
+#include "stdio.h"
 
 // naming might be constructed as something_fileidfromcmake_linenumber
 
 /* MACRO STARTS HERE */
+
+void s1_f(char *args[], struct ResultReporter *reporter);
+
 struct StepInfo s1_i = {
     .position = "/.../filename.c:42", // __FILE__:__LINE__
     .expressionType = "regex",
-    .expression = "I eat (d+) cukes" // macro param
-};
-
-void s1_f();
-
-struct StepDef s1_d = {
-    .info = &s1_i,
+    .expression = "I eat (d+) cukes", // macro param
     .body = s1_f
 };
 
-void s1_f() /* MACRO ENDS HERE */ {
-    // this is the test body
+void s1_f(char *args[], struct ResultReporter *reporter) /* MACRO ENDS HERE */ {
+    printf("C step executed");
+//    reporter->failed("thisfile:thisline", "stuff happened!"); // TODO UNCOMMENT THIS
 }
 
 
@@ -34,8 +28,8 @@ void s1_f() /* MACRO ENDS HERE */ {
  * ...that creates a file with the steps variable by parsing source files.
  */
 
-struct StepDef *steps[] = {
-    &s1_d // , ...
+struct StepInfo *steps[] = {
+    &s1_i // , ...
 };
 
 /*
@@ -46,13 +40,13 @@ struct StepDef *steps[] = {
 //extern struct StepDef *steps[];
 
 __attribute__((constructor)) void begin() {
-    for (struct StepDef **i = steps; *i != 0; ++i)
-        registerGlue((*i)->info);
+    for (struct StepInfo **i = steps; *i != 0; ++i)
+        registerGlue(*i);
 }
 
 __attribute__((destructor)) void end() {
-    for (struct StepDef **i = steps; *i != 0; ++i)
-        unregisterGlue((*i)->info);
+    for (struct StepInfo **i = steps; *i != 0; ++i)
+        unregisterGlue(*i);
 }
 
 /*

@@ -103,7 +103,7 @@ int main(int ac, const char *av[])
             outputSinks.push_back(PluginRegistry::instance()->findOutputPlugin(spec.plugin).outputFor(spec.expression));
         }
 
-        // TODO if no output is defined use the default?
+        // TODO if no output is defined use the default? (wire input does not require an output)
 
         /*
          * Main loop

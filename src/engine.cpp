@@ -1,4 +1,5 @@
 #include <engine.hpp>
+#include <glue/manager.hpp>
 
 #include <iostream>
 
@@ -24,6 +25,7 @@ void cucumber::beginScenario() {
 }
 void cucumber::invokeStep() {
     cerr << "[DEBUG] Invoke" << endl;
+    temporaryInvokeStep("I eat (d+) cukes");
 }
 void cucumber::endScenario() {
     cerr << "[DEBUG] End scenario" << endl;
